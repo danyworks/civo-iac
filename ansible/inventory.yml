@@ -1,0 +1,7 @@
+all:
+    hosts:
+        main_cluster:
+            #gather_facts: false
+            cluster: main_cluster
+            ansible_connection: local
+            region: FRA1

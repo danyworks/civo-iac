@@ -1,0 +1,9 @@
+requests
+ansible
+ansible-lint
+ansible-vault
+google-auth
+numpy
+openshift
+pyyaml
+kubernetes

@@ -1,0 +1,55 @@
+- name: Create/Update certificate secret
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: public-gateway
+        namespace: default
+      type: kubernetes.io/tls
+      data:
+        tls.crt: "{{ lookup('file', 'public-gateway.crt') | b64encode }}"
+        tls.key: "{{ lookup('file', 'public-gateway.key') | b64encode }}"
+
+- name: Create/Update Gateway
+  kubernetes.core.k8s:
+    state: present
+    definition: 
+      apiVersion: gateway.networking.k8s.io/v1beta1
+      kind: Gateway
+      metadata:
+        name: public-gateway
+        namespace: default
+      spec:
+        addresses:
+        - type: NamedAddress
+          value: public-gateway
+        gatewayClassName: gke-l7-gxlb
+        listeners:
+        - name: http
+          protocol: HTTP
+          port: 80
+          allowedRoutes:
+            kinds: 
+              - kind: HTTPRoute
+            namespaces:
+              from: Selector
+              selector:
+                matchLabels:
+                  public-gateway-access: "true"
+        - name: https
+          protocol: HTTPS
+          port: 443
+          tls:
+            mode: Terminate
+            certificateRefs:
+            - name: public-gateway
+          allowedRoutes:
+            kinds: 
+              - kind: HTTPRoute
+            namespaces:
+              from: Selector
+              selector:
+                matchLabels:
+                  public-gateway-access: "true"

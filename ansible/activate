@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+export VENV_DIR=.ansible
+
+install_basic_packages() {
+    echo "========================================== Install basic packages ==========================================="
+    packages="software-properties-common git git-lfs kubectl jq"
+    echo $packages | xargs sudo dpkg -s &> /dev/null
+    if [ $? != 0 ]; then
+        sudo apt-get -q update
+        sudo apt-get -qy install $packages
+        git lfs install 
+    else
+        echo "Already installed."
+    fi
+}
+
+setup_venv() {
+    echo "=========================================== Install & setup venv ============================================"
+
+    if [ ! -d $VENV_DIR ]; then
+        echo "Create python venv"
+        python3 -m virtualenv $VENV_DIR
+    fi
+    echo "Activate python venv"
+    source $VENV_DIR/bin/activate
+    pip install -q -r requirements.txt
+    ansible-galaxy install -r dependencies.yml
+}
+
+# prepare_secrets() {
+#     echo "============================================= Prepare secrets ==============================================="
+#     mkdir -p secrets
+#     cp -r vaults/* secrets/
+#     ansible-vault decrypt secrets/*
+# }
+
+install_civo_cli() {
+    echo "============================================== Install CIVO CLI ==============================================="
+    if [ ! -f "/usr/local/bin/civo" ]; then
+        sudo curl -sL https://civo.com/get | sudo bash -
+    else
+        echo "Already installed"
+    fi
+}
+
+install_terraform() {
+    echo "=============================================== Install Terraform ================================================"
+    if [ ! -f "/usr/local/bin/terraform" ]; then
+        wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg
+        echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+        sudo apt update -yq && sudo apt install terraform -yq
+    else
+        echo "Already installed"
+    fi
+}
+
+install_helm() {
+    echo "=============================================== Install Helm ================================================"
+    if [ ! -f "/usr/local/bin/helm" ]; then
+        curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+        helm plugin install https://github.com/databus23/helm-diff
+    else
+        echo "Already installed"
+    fi
+}
+
+install_basic_packages
+setup_venv
+install_civo_cli
+# install_terraform
+install_helm

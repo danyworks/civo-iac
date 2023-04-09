@@ -1,0 +1,3 @@
+- name: Gateway setup
+  include_tasks: gateway.yml
+  #when: inventory_hostname != ""
