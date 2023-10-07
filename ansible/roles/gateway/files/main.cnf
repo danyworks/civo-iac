@@ -14,4 +14,4 @@ subjectAltName            = @sans_list
 commonName                = *.
 
 [sans_list]
-DNS.1                     = *.dev.bildungsraum.de
+DNS.1                     = *.xenorbit.com
